@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using FirstCateringAuthenticationApi.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
@@ -25,7 +26,7 @@ namespace FirstCateringAuthenticationApi.Controllers
             throw new NotImplementedException();
         }
 
-        public IActionResult Register()
+        public Task<IActionResult> Register(CardRegistrationModel model)
         {
             throw new NotImplementedException();
         }
