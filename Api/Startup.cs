@@ -1,9 +1,12 @@
+using System.Text;
+using AutoMapper;
 using DAL;
 using DAL.Interfaces;
 using DAL.Models;
 using DAL.Repositories;
 using FirstCateringAuthenticationApi.Interfaces;
 using FirstCateringAuthenticationApi.Managers;
+using FirstCateringAuthenticationApi.Mappings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -30,7 +33,7 @@ namespace FirstCateringAuthenticationApi
             services.AddCors(x => x.AddDefaultPolicy(builder => builder.AllowAnyOrigin().Build()));
             services.AddControllers();
             services.AddDbContext<AuthenticationContext>(o => o.
-                UseSqlServer("Server=IANSPC02\\MSSQLSERVER01;Database=FirstCateringAuthentication;Trusted_Connection=True;"));
+                UseSqlServer(Configuration.GetConnectionString("Default")));
 
             services.AddIdentityCore<IdentityCard>(o =>
             {
@@ -43,12 +46,11 @@ namespace FirstCateringAuthenticationApi
             })
                 .AddEntityFrameworkStores<AuthenticationContext>();
 
+            var issuerKey = Configuration["Jwt:IssuerKey"];
             services.AddHttpContextAccessor();
             services.AddAuthentication(x =>
                 {
                     x.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-                    x.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
-                    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 })
                 .AddJwtBearer(x =>
                 {
@@ -58,18 +60,27 @@ namespace FirstCateringAuthenticationApi
                     x.TokenValidationParameters = new TokenValidationParameters()
                     {
                         ValidateIssuer = false,
+                        ValidateAudience = false,
                         ValidateLifetime = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(issuerKey))
                     };
                 });
 
             services.AddScoped<ICardManager, CardManager>();
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            var config = new AutoMapper.MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile(new AutoMapperProfile());
+            });
+
+            var mapper = config.CreateMapper();
+            services.AddSingleton(mapper);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.UseCors();
+            app.UseCors(x => x.AllowAnyOrigin());
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
