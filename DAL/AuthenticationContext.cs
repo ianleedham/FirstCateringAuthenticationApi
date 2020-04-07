@@ -1,11 +1,15 @@
-﻿using FirstCateringAuthenticationApi.Classes;
+﻿using DAL.Models;
+using FirstCateringAuthenticationApi.Model;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace FirstCateringAuthenticationApi
+namespace DAL
 {
     public class AuthenticationContext : IdentityDbContext<IdentityCard>
     {
+        
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
+        
         public AuthenticationContext(DbContextOptions<AuthenticationContext> options) : base(options)
         {
 

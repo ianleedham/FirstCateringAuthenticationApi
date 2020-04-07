@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace FirstCateringAuthenticationApi.Migrations
+namespace DAL.Migrations
 {
     public partial class AddIdentityCard : Migration
     {
