@@ -5,8 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using System.Threading.Tasks;
 using AutoMapper;
+using DAL.Interfaces;
 using DAL.Models;
 using FirstCateringAuthenticationApi.DataTransferObjects;
+using Microsoft.Extensions.Configuration;
 using UnitTests.Builders;
 using Xunit;
 
@@ -15,7 +17,9 @@ namespace UnitTests
     public class AuthenticationControllerTests
     {
         private Mock<ICardManager> _mockCardManager;
-        private Mock<IMapper> _mapper;
+        private Mock<IMapper> _mockMapper;
+        private Mock<IConfiguration> _mockConfiguration;
+        private Mock<IRefreshTokenRepository> _mockRefreshTokenRepository;
         
         private readonly IdentityCardBuilder _identityCardBuilder;
         private readonly CardRegistrationDtoBuilder _cardRegistrationDtoBuilder;
@@ -72,9 +76,14 @@ namespace UnitTests
             card.Id = "cutbgln213454hbv";
             _mockCardManager.Setup(x => x.FindByIdAsync(card.Id)).ReturnsAsync(card);
             _mockCardManager.Setup(x => x.CheckPasswordAsync(card, pin)).ReturnsAsync(true);
-
+            var loginParameters = new LoginParametersDto()
+            {
+                CardNumber = card.Id,
+                Pin = pin
+            };
+            
             // Act
-            var result = await subject.TapWithPin(card.Id, pin);
+            var result = await subject.TapWithPin(loginParameters);
 
             // Assert
             Assert.NotNull(result);
@@ -95,9 +104,14 @@ namespace UnitTests
             card.Id = "cutbgln213454hbv";
             _mockCardManager.Setup(x => x.FindByIdAsync(card.Id)).ReturnsAsync(card);
             _mockCardManager.Setup(x => x.CheckPasswordAsync(card, pin)).ReturnsAsync(false);
-
+            var loginParameters = new LoginParametersDto()
+            {
+                CardNumber = card.Id,
+                Pin = pin
+            };
+            
             // Act
-            var result = await subject.TapWithPin(card.Id, pin);
+            var result = await subject.TapWithPin(loginParameters);
 
             // Assert
             Assert.NotNull(result);
@@ -114,7 +128,7 @@ namespace UnitTests
             IdentityCard identityCard = _identityCardBuilder.GenericIdentityCard().Build();
             identityCard.Id = "cutbgln213454hbv";
             CardRegistrationDto cardRegistrationDto = _cardRegistrationDtoBuilder.GenericRegistration().Build();
-            _mapper.Setup(x => x.Map<IdentityCard>(cardRegistrationDto)).Returns(identityCard);
+            _mockMapper.Setup(x => x.Map<IdentityCard>(cardRegistrationDto)).Returns(identityCard);
 
             var identityResult = new IdentityResult();
 
@@ -134,9 +148,12 @@ namespace UnitTests
         private AuthenticationController GetSubject()
         {
             _mockCardManager = new Mock<ICardManager>();
-            _mapper = new Mock<IMapper> ();
+            _mockMapper = new Mock<IMapper> ();
+            _mockConfiguration = new Mock<IConfiguration> ();
+            _mockRefreshTokenRepository = new Mock<IRefreshTokenRepository> ();
 
-            return new AuthenticationController(_mockCardManager.Object, _mapper.Object);
+            return new AuthenticationController(_mockCardManager.Object, _mockMapper.Object,
+                _mockConfiguration.Object, _mockRefreshTokenRepository.Object);
         }
     }
 }
