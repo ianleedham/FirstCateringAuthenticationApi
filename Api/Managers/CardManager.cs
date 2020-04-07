@@ -1,10 +1,10 @@
-﻿using FirstCateringAuthenticationApi.Classes;
-using FirstCateringAuthenticationApi.Interfaces;
+﻿using FirstCateringAuthenticationApi.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using DAL.Models;
 
 namespace FirstCateringAuthenticationApi.Managers
 {

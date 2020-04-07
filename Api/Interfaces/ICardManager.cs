@@ -1,7 +1,8 @@
-﻿using FirstCateringAuthenticationApi.Classes;
+﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using DAL.Models;
 
 namespace FirstCateringAuthenticationApi.Interfaces
 {
@@ -15,5 +16,6 @@ namespace FirstCateringAuthenticationApi.Interfaces
 
         Task<IdentityCard> GetUserAsync(ClaimsPrincipal principal);
 
+        Task<bool> CheckPasswordAsync(IdentityCard user, string password);
     }
 }
