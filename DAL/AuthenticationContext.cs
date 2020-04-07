@@ -7,9 +7,9 @@ namespace DAL
 {
     public class AuthenticationContext : IdentityDbContext<IdentityCard>
     {
-        
+
         public DbSet<RefreshToken> RefreshTokens { get; set; }
-        
+
         public AuthenticationContext(DbContextOptions<AuthenticationContext> options) : base(options)
         {
 
