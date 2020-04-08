@@ -33,35 +33,18 @@ namespace FirstCateringAuthenticationApi.Controllers
         }
         
         [Authorize]
-        [HttpPost("logout")]
-        public async Task<IActionResult> Logout(string cardNumber)
+        [HttpPost("tap")]
+        public async Task<IActionResult> Tap(string cardNumber)
         {
+            var card = _cardManager.FindByIdAsync(cardNumber);
+            if (card == null)
+            {
+                return NotFound("please register your card");
+            }
             await _tokenManager.InvalidateRefreshToken(cardNumber);
             return Ok();
         }
-        
-        [HttpPost("refresh")]
-        [AllowAnonymous]
-        public async Task<IActionResult> RefreshToken(string token)
-        {
-            RefreshToken refreshToken = await _refreshTokenRepository.Get(token);
-            var card = _cardManager.FindByIdAsync(refreshToken.CardNumber);
-            if (refreshToken == null || refreshToken.Revoked || refreshToken.Expires <= DateTime.Now)
-            {
-                return Unauthorized();
-            }
 
-            refreshToken.Expires = DateTime.Now.AddMinutes(5);
-            var cardDto = _mapper.Map<CardDto>(card);
-            cardDto.Bearer = _tokenManager.CreateJwt(refreshToken.CardNumber);
-            cardDto.RefreshToken = null;
-            if (await _tokenManager.SaveRefreshToken(refreshToken))
-            {
-                cardDto.RefreshToken = refreshToken.Token;
-            }
-            return Ok(cardDto);
-        }
-        
         [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginParametersDto loginParametersDto )
@@ -88,6 +71,28 @@ namespace FirstCateringAuthenticationApi.Controllers
             }
             return Ok(cardDto);
 
+        }
+        
+        [HttpPost("refresh")]
+        [AllowAnonymous]
+        public async Task<IActionResult> RefreshToken(string token)
+        {
+            RefreshToken refreshToken = await _refreshTokenRepository.Get(token);
+            if (refreshToken == null || refreshToken.Revoked || refreshToken.Expires <= DateTime.Now)
+            {
+                return Unauthorized();
+            }
+
+            var card = await _cardManager.FindByIdAsync(refreshToken.CardNumber);
+            refreshToken.Expires = DateTime.Now.AddMinutes(5);
+            var cardDto = _mapper.Map<CardDto>(card);
+            cardDto.Bearer = _tokenManager.CreateJwt(refreshToken.CardNumber);
+            cardDto.RefreshToken = null;
+            if (await _tokenManager.SaveRefreshToken(refreshToken))
+            {
+                cardDto.RefreshToken = refreshToken.Token;
+            }
+            return Ok(cardDto);
         }
 
         [AllowAnonymous]
