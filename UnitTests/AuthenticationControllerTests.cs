@@ -40,13 +40,17 @@ namespace UnitTests
             var subject = GetSubject();
             IdentityCard card = _identityCardBuilder.GenericIdentityCard().Build();
             _mockCardManager.Setup(x => x.FindByIdAsync(card.Id)).ReturnsAsync(card);
+            var tapDto = new TapDto()
+            {
+                CardNumber = card.Id
+            };
             
             // Act
-            var result = await subject.Tap(card.Id);
+            var result = await subject.Tap(tapDto);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(typeof(OkResult), result.GetType());
+            Assert.Equal(typeof(OkObjectResult), result.GetType());
             _mockTokenManager.Verify(x => x.InvalidateRefreshToken(card.Id));
         }
         
@@ -56,9 +60,13 @@ namespace UnitTests
             // Arrange
             var subject = GetSubject();
             IdentityCard card = _identityCardBuilder.GenericIdentityCard().Build();
+            var tapDto = new TapDto()
+            {
+                CardNumber = card.Id
+            };
             
             // Act
-            var result = await subject.Tap(card.Id);
+            var result = await subject.Tap(tapDto);
 
             // Assert
             Assert.NotNull(result);
@@ -197,10 +205,14 @@ namespace UnitTests
                 Expires = DateTime.Now.AddHours(-1)
             };
             _mockRefreshTokenRepository.Setup(x => x.Get(refreshTokenString)).ReturnsAsync(refreshToken);
+            var refreshTokenDto = new RefreshTokenDto()
+            {
+                Token = refreshTokenString
+            };
             
             // Act
             
-            var result = await subject.RefreshToken(refreshTokenString);
+            var result = await subject.RefreshToken(refreshTokenDto);
 
             // Assert
             Assert.Equal(typeof(UnauthorizedResult), result.GetType());
@@ -218,10 +230,14 @@ namespace UnitTests
                 Expires = DateTime.Now.AddDays(1)
             };
             _mockRefreshTokenRepository.Setup(x => x.Get(refreshTokenString)).ReturnsAsync(refreshToken);
+            var refreshTokenDto = new RefreshTokenDto()
+            {
+                Token = refreshTokenString
+            };
             
             // Act
             
-            var result = await subject.RefreshToken(refreshTokenString);
+            var result = await subject.RefreshToken(refreshTokenDto);
 
             // Assert
             Assert.Equal(typeof(UnauthorizedResult), result.GetType());
@@ -246,9 +262,13 @@ namespace UnitTests
             _mockMapper.Setup(x => x.Map<CardDto>(identityCard)).Returns(cardDto);
             _mockCardManager.Setup(x => x.FindByIdAsync(cardNumber)).ReturnsAsync(identityCard);
             _mockTokenManager.Setup(x => x.SaveRefreshToken(refreshToken)).ReturnsAsync(true);
+            var refreshTokenDto = new RefreshTokenDto()
+            {
+                Token = refreshTokenString
+            };
             
             // Act
-            var result = await subject.RefreshToken(refreshTokenString);
+            var result = await subject.RefreshToken(refreshTokenDto);
 
             // Assert
             Assert.Equal(typeof(OkObjectResult), result.GetType());
