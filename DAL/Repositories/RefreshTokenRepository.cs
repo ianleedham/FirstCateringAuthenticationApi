@@ -1,7 +1,10 @@
 ﻿#nullable enable
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 using DAL.Interfaces;
 using FirstCateringAuthenticationApi.Model;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace DAL.Repositories
@@ -15,14 +18,26 @@ namespace DAL.Repositories
             _context = context;
         }
 
-        public ValueTask<RefreshToken?> Get(string id)
+        public async Task<RefreshToken> Get(string tokenString)
         {
-            return _context.RefreshTokens.FindAsync(id);
+            return await _context.RefreshTokens.FindAsync(tokenString);
+        }
+        
+        public Task<RefreshToken> GetByCardnumber(string cardNumber)
+        {
+            return _context.RefreshTokens.Where(x => x.Revoked == false &&
+                                                     x.CardNumber == cardNumber && x.Expires > DateTime.Now)
+                .FirstOrDefaultAsync();
         }
 
         public ValueTask<EntityEntry<RefreshToken>> Create(RefreshToken token)
         {
             return _context.RefreshTokens.AddAsync(token);
+        }
+
+        public void Update(RefreshToken token)
+        {
+            _context.Update(token);
         }
 
         public Task<int> Save()

@@ -81,14 +81,12 @@ namespace FirstCateringAuthenticationApi.Controllers
             }
 
             var card = await _cardManager.FindByIdAsync(refreshToken.CardNumber);
-            refreshToken.Expires = DateTime.Now.AddMinutes(5);
             var cardDto = _mapper.Map<CardDto>(card);
             cardDto.Bearer = _tokenManager.CreateJwt(refreshToken.CardNumber);
             cardDto.RefreshToken = null;
-            if (await _tokenManager.SaveRefreshToken(refreshToken))
-            {
-                cardDto.RefreshToken = refreshToken.Token;
-            }
+            refreshToken = await _tokenManager.ResetRefreshToken(refreshToken);
+            cardDto.RefreshToken = refreshToken.Token;
+            
             return Ok(cardDto);
         }
 
@@ -116,7 +114,7 @@ namespace FirstCateringAuthenticationApi.Controllers
 
             if (identityResult.Succeeded)
             {
-                return Ok(await _cardManager.FindByIdAsync(dto.CardNumber));
+                return Ok("Registered successfully");
             }
 
             return BadRequest(identityResult.Errors);

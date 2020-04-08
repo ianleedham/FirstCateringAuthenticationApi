@@ -12,5 +12,7 @@ namespace FirstCateringAuthenticationApi.Interfaces
         RefreshToken CreateRefreshToken(string cardNumber);
         
         Task InvalidateRefreshToken(string cardNumber);
+        
+        Task<RefreshToken> ResetRefreshToken(RefreshToken refreshToken);
     }
 }

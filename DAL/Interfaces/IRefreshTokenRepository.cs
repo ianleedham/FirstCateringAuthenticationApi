@@ -7,7 +7,11 @@ namespace DAL.Interfaces
 {
     public interface IRefreshTokenRepository
     {
-        ValueTask<RefreshToken?> Get(string id);
+        Task<RefreshToken?> Get(string tokenString);
+
+        Task<RefreshToken?> GetByCardnumber(string cardNumber);
+
+        void Update(RefreshToken token);
 
         ValueTask<EntityEntry<RefreshToken>> Create(RefreshToken token);
 

@@ -64,12 +64,25 @@ namespace FirstCateringAuthenticationApi.Managers
 
         public async Task InvalidateRefreshToken(string cardNumber)
         {
-            RefreshToken token = await _refreshTokenRepository.Get(cardNumber);
+            RefreshToken token = await _refreshTokenRepository.GetByCardnumber(cardNumber);
             if (token != null)
             {
                 token.Revoked = true;
+                _refreshTokenRepository.Update(token);
                 await _refreshTokenRepository.Save();
             }
+        }
+
+        public async Task<RefreshToken> ResetRefreshToken(RefreshToken refreshToken)
+        {
+            RefreshToken token = await _refreshTokenRepository.Get(refreshToken.Token);
+            if (token != null)
+            {
+                token.Expires = DateTime.Now.AddMinutes(5);
+                _refreshTokenRepository.Update(token);
+                await _refreshTokenRepository.Save();
+            };
+            return token;
         }
     }
 }
