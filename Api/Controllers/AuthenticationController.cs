@@ -36,7 +36,7 @@ namespace FirstCateringAuthenticationApi.Controllers
         
         [Authorize]
         [HttpPost("logout")]
-        public async Task<IActionResult> Tap(string cardNumber)
+        public async Task<IActionResult> Logout(string cardNumber)
         {
             await InvalidateRefreshToken(cardNumber);
             return Ok();
@@ -52,6 +52,8 @@ namespace FirstCateringAuthenticationApi.Controllers
             {
                 return Unauthorized();
             }
+
+            refreshToken.Expires = DateTime.Now.AddMinutes(5);
             var cardDto = _mapper.Map<CardDto>(card);
             cardDto.Bearer = CreateJwt(refreshToken.CardNumber);
             cardDto.RefreshToken = null;
@@ -64,7 +66,7 @@ namespace FirstCateringAuthenticationApi.Controllers
         
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<IActionResult> TapWithPin([FromBody] LoginParametersDto loginParametersDto )
+        public async Task<IActionResult> Login([FromBody] LoginParametersDto loginParametersDto )
         {
             IdentityCard card = await _cardManager.FindByIdAsync(loginParametersDto.CardNumber);
             
