@@ -40,8 +40,7 @@ namespace UnitTests
             _mockCardManager.Setup(x => x.FindByIdAsync(card.Id)).ReturnsAsync(card);
 
             // Act
-
-            var result = await subject.Tap(card.Id);
+            var result = await subject.Logout(card.Id);
 
             // Assert
             Assert.NotNull(result);
@@ -58,7 +57,7 @@ namespace UnitTests
             _mockCardManager.Setup(x => x.FindByIdAsync(cardNumber)).ReturnsAsync((IdentityCard) null);
 
             // Act
-            var result = await subject.Tap(cardNumber);
+            var result = await subject.Logout(cardNumber);
 
             // Assert
             Assert.NotNull(result);
@@ -83,7 +82,7 @@ namespace UnitTests
             };
             
             // Act
-            var result = await subject.TapWithPin(loginParameters);
+            var result = await subject.Login(loginParameters);
 
             // Assert
             Assert.NotNull(result);
@@ -111,7 +110,7 @@ namespace UnitTests
             };
             
             // Act
-            var result = await subject.TapWithPin(loginParameters);
+            var result = await subject.Login(loginParameters);
 
             // Assert
             Assert.NotNull(result);
