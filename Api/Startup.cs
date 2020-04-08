@@ -1,5 +1,4 @@
 using System.Text;
-using AutoMapper;
 using DAL;
 using DAL.Interfaces;
 using DAL.Models;
@@ -68,6 +67,7 @@ namespace FirstCateringAuthenticationApi
 
             services.AddScoped<ICardManager, CardManager>();
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            services.AddScoped<ITokenManager, TokenManager>();
             var config = new AutoMapper.MapperConfiguration(cfg =>
             {
                 cfg.AddProfile(new AutoMapperProfile());
