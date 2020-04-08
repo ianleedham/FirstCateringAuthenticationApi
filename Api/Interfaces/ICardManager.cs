@@ -8,13 +8,9 @@ namespace FirstCateringAuthenticationApi.Interfaces
 {
     public interface ICardManager
     {
-        Task<IdentityResult> CreateAsync(IdentityCard card);
-
         Task<IdentityResult> CreateAsync(IdentityCard card, string password);
 
         Task<IdentityCard> FindByIdAsync(string userId);
-
-        Task<IdentityCard> GetUserAsync(ClaimsPrincipal principal);
 
         Task<bool> CheckPasswordAsync(IdentityCard user, string password);
     }
