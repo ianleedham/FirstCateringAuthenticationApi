@@ -18,7 +18,7 @@ namespace UnitTests
     {
         private Mock<ICardManager> _mockCardManager;
         private Mock<IMapper> _mockMapper;
-        private Mock<IConfiguration> _mockConfiguration;
+        private Mock<ITokenManager> _mockTokenManager;
         private Mock<IRefreshTokenRepository> _mockRefreshTokenRepository;
         
         private readonly IdentityCardBuilder _identityCardBuilder;
@@ -31,7 +31,7 @@ namespace UnitTests
         }
 
         [Fact]
-        public async Task UserTaps_WithLoggedinUser_LogsUserOutReturnsOk()
+        public async Task UserTaps_WithLoggedinUser_SetsRefreshTokenToRevokedReturnsOk()
         {
             // Arrange
             var subject = GetSubject();
@@ -80,7 +80,12 @@ namespace UnitTests
                 CardNumber = card.Id,
                 Pin = pin
             };
-            
+            var cardDto = new CardDto()
+            {
+                FullName = card.FullName
+            };
+            _mockMapper.Setup(x => x.Map<CardDto>(card)).Returns(cardDto);
+
             // Act
             var result = await subject.Login(loginParameters);
 
@@ -148,11 +153,11 @@ namespace UnitTests
         {
             _mockCardManager = new Mock<ICardManager>();
             _mockMapper = new Mock<IMapper> ();
-            _mockConfiguration = new Mock<IConfiguration> ();
+            _mockTokenManager = new Mock<ITokenManager> ();
             _mockRefreshTokenRepository = new Mock<IRefreshTokenRepository> ();
 
             return new AuthenticationController(_mockCardManager.Object, _mockMapper.Object,
-                _mockConfiguration.Object, _mockRefreshTokenRepository.Object);
+                _mockTokenManager.Object, _mockRefreshTokenRepository.Object);
         }
     }
 }

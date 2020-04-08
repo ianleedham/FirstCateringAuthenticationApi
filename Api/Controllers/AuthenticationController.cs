@@ -12,8 +12,6 @@ using DAL.Models;
 using FirstCateringAuthenticationApi.DataTransferObjects;
 using FirstCateringAuthenticationApi.Model;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 
 namespace FirstCateringAuthenticationApi.Controllers
 {
@@ -23,14 +21,14 @@ namespace FirstCateringAuthenticationApi.Controllers
     {
         private readonly ICardManager _cardManager;
         private readonly IMapper _mapper;
-        private readonly IConfiguration _configuration;
+        private readonly ITokenManager _tokenManager;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
 
-        public AuthenticationController(ICardManager userManager, IMapper mapper, IConfiguration configuration, IRefreshTokenRepository refreshTokenRepository)
+        public AuthenticationController(ICardManager userManager, IMapper mapper, ITokenManager tokenManager, IRefreshTokenRepository refreshTokenRepository)
         {
             _cardManager = userManager;
             _mapper = mapper;
-            _configuration = configuration;
+            _tokenManager = tokenManager;
             _refreshTokenRepository = refreshTokenRepository;
         }
         
@@ -38,7 +36,7 @@ namespace FirstCateringAuthenticationApi.Controllers
         [HttpPost("logout")]
         public async Task<IActionResult> Logout(string cardNumber)
         {
-            await InvalidateRefreshToken(cardNumber);
+            await _tokenManager.InvalidateRefreshToken(cardNumber);
             return Ok();
         }
         
@@ -55,9 +53,9 @@ namespace FirstCateringAuthenticationApi.Controllers
 
             refreshToken.Expires = DateTime.Now.AddMinutes(5);
             var cardDto = _mapper.Map<CardDto>(card);
-            cardDto.Bearer = CreateJwt(refreshToken.CardNumber);
+            cardDto.Bearer = _tokenManager.CreateJwt(refreshToken.CardNumber);
             cardDto.RefreshToken = null;
-            if (await SaveRefreshToken(refreshToken))
+            if (await _tokenManager.SaveRefreshToken(refreshToken))
             {
                 cardDto.RefreshToken = refreshToken.Token;
             }
@@ -80,18 +78,18 @@ namespace FirstCateringAuthenticationApi.Controllers
             var passwordCorrect = await _cardManager.CheckPasswordAsync(card, loginParametersDto.Pin);
             if (!passwordCorrect) return Unauthorized("pin incorrect");
             
-            var refreshToken = CreateRefreshToken(loginParametersDto.CardNumber);
+            var refreshToken = _tokenManager.CreateRefreshToken(loginParametersDto.CardNumber);
             var cardDto = _mapper.Map<CardDto>(card);
-            cardDto.Bearer = CreateJwt(loginParametersDto.CardNumber);
+            cardDto.Bearer = _tokenManager.CreateJwt(loginParametersDto.CardNumber);
             cardDto.RefreshToken = null;
-            if (await SaveRefreshToken(refreshToken))
+            if (await _tokenManager.SaveRefreshToken(refreshToken))
             {
                 cardDto.RefreshToken = refreshToken.Token;
             }
             return Ok(cardDto);
 
         }
-        
+
         [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> RegisterAsync(CardRegistrationDto dto)
@@ -116,63 +114,10 @@ namespace FirstCateringAuthenticationApi.Controllers
 
             if (identityResult.Succeeded)
             {
-                savedCard = await _cardManager.FindByIdAsync(dto.CardNumber);
-                return Ok(savedCard);
+                return Ok(await _cardManager.FindByIdAsync(dto.CardNumber));
             }
-            else
-            {
-                return BadRequest(identityResult.Errors);
-            }
-        }
-        
-        private async Task<bool> SaveRefreshToken(RefreshToken refreshToken)
-        {
-            await _refreshTokenRepository.Create(refreshToken);
-            var result = await _refreshTokenRepository.Save();
-            return result > 0;
-        }
 
-        private string CreateJwt(string cardNumber)
-        {
-            var tokenHandeler = new JwtSecurityTokenHandler { TokenLifetimeInMinutes = 2 };
-
-            byte[] key = Encoding.ASCII.GetBytes(_configuration["Jwt:IssuerKey"]);
-
-            var tokenDescriptor = new SecurityTokenDescriptor()
-            {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                    new Claim(ClaimTypes.Name, cardNumber)
-                }),
-                Expires = DateTime.Now.AddMinutes(2),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
-            };
-
-            SecurityToken token = tokenHandeler.CreateToken(tokenDescriptor);
-
-            return tokenHandeler.WriteToken(token);
-        }
-
-        private RefreshToken CreateRefreshToken(string cardNumber)
-        {
-            var refreshToken = new RefreshToken()
-            {
-                CardNumber = cardNumber,
-                Token = Guid.NewGuid().ToString(),
-                Revoked = false,
-                Expires = DateTime.Now.AddMinutes(5),
-            };
-            return refreshToken;
-        }
-
-        private async Task InvalidateRefreshToken(string cardNumber)
-        {
-            RefreshToken token = await _refreshTokenRepository.Get(cardNumber);
-            if (token != null)
-            {
-                token.Revoked = true;
-                await _refreshTokenRepository.Save();
-            }
+            return BadRequest(identityResult.Errors);
         }
     }
 }
