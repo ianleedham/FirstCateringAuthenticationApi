@@ -70,7 +70,7 @@ namespace UnitTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(typeof(OkResult), result.GetType());
+            Assert.Equal(typeof(OkObjectResult), result.GetType());
             _mockTokenManager.Verify(x => x.InvalidateRefreshToken(card.Id));
         }
         
@@ -190,7 +190,7 @@ namespace UnitTests
             // Assert
             Assert.NotNull(result);
             Assert.Equal(typeof(OkObjectResult), result.GetType());
-            Assert.Equal(typeof(IdentityCard), ((OkObjectResult) result).Value.GetType());
+            Assert.Equal(typeof(string), ((OkObjectResult) result).Value.GetType());
         }
 
         [Fact]
@@ -253,15 +253,19 @@ namespace UnitTests
             string cardNumber = identityCard.Id;
             var refreshToken = new RefreshToken()
             {
+                Token = refreshTokenString,
                 CardNumber = cardNumber,
                 Revoked = false,
                 Expires = DateTime.Now.AddDays(1)
             };
-            _mockRefreshTokenRepository.Setup(x => x.Get(refreshTokenString)).ReturnsAsync(refreshToken);
+            _mockRefreshTokenRepository.Setup(x => x.Get(refreshTokenString))
+                .ReturnsAsync(refreshToken);
             CardDto cardDto = new CardDto();
             _mockMapper.Setup(x => x.Map<CardDto>(identityCard)).Returns(cardDto);
             _mockCardManager.Setup(x => x.FindByIdAsync(cardNumber)).ReturnsAsync(identityCard);
             _mockTokenManager.Setup(x => x.SaveRefreshToken(refreshToken)).ReturnsAsync(true);
+            _mockTokenManager.Setup(x => x.ResetRefreshToken(refreshToken))
+                .ReturnsAsync(refreshToken);
             var refreshTokenDto = new RefreshTokenDto()
             {
                 Token = refreshTokenString
