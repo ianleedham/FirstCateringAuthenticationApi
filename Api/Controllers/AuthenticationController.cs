@@ -2,9 +2,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using DAL.Interfaces;
@@ -34,15 +31,15 @@ namespace FirstCateringAuthenticationApi.Controllers
         
         [Authorize]
         [HttpPost("tap")]
-        public async Task<IActionResult> Tap(string cardNumber)
+        public async Task<IActionResult> Tap([FromBody] TapDto dto)
         {
-            var card = _cardManager.FindByIdAsync(cardNumber);
+            var card = _cardManager.FindByIdAsync(dto.CardNumber);
             if (card == null)
             {
                 return NotFound("please register your card");
             }
-            await _tokenManager.InvalidateRefreshToken(cardNumber);
-            return Ok();
+            await _tokenManager.InvalidateRefreshToken(dto.CardNumber);
+            return Ok("logged out successfully");
         }
 
         [AllowAnonymous]
@@ -75,9 +72,9 @@ namespace FirstCateringAuthenticationApi.Controllers
         
         [HttpPost("refresh")]
         [AllowAnonymous]
-        public async Task<IActionResult> RefreshToken(string token)
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto dto)
         {
-            RefreshToken refreshToken = await _refreshTokenRepository.Get(token);
+            RefreshToken refreshToken = await _refreshTokenRepository.Get(dto.Token);
             if (refreshToken == null || refreshToken.Revoked || refreshToken.Expires <= DateTime.Now)
             {
                 return Unauthorized();
@@ -97,7 +94,7 @@ namespace FirstCateringAuthenticationApi.Controllers
 
         [AllowAnonymous]
         [HttpPost("register")]
-        public async Task<IActionResult> RegisterAsync(CardRegistrationDto dto)
+        public async Task<IActionResult> RegisterAsync([FromBody] CardRegistrationDto dto)
         {
             // check if card is already registered
             IdentityUser savedCard = await _cardManager.FindByIdAsync(dto.CardNumber);
