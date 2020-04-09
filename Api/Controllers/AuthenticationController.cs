@@ -9,6 +9,7 @@ using DAL.Models;
 using FirstCateringAuthenticationApi.DataTransferObjects;
 using FirstCateringAuthenticationApi.Model;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace FirstCateringAuthenticationApi.Controllers
 {
@@ -43,14 +44,16 @@ namespace FirstCateringAuthenticationApi.Controllers
         /// When a user taps their card it can call this to find out what if anything the client needs to do
         /// </summary>
         /// <param name="dto">contains the card number</param>
-        /// <returns>
-        /// <para> Unauthorized if they sent a expired of null jwt</para>
-        /// <para> NotFound("please register your card") if the card was not found</para>
-        /// <para> Ok("logged out successfully") if they sent a valid jwt and a registered card number</para>
-        /// </returns>
-        
+        /// <returns>logged out or unauthorised</returns>
+        /// <response code="401"> Unauthorized if they sent a expired of null jwt</response>
+        /// <response code="404"> NotFound("please register your card") if the card was not found</response>
+        /// <response code="200"> Ok("logged out successfully") if they sent a valid jwt and a registered card number</response>
         [Authorize]
         [HttpPost("tap")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Produces("application/json")]
         public async Task<IActionResult> Tap([FromBody] TapDto dto)
         {
             var card = _cardManager.FindByIdAsync(dto.CardNumber);
@@ -66,13 +69,16 @@ namespace FirstCateringAuthenticationApi.Controllers
         /// The main login method
         /// </summary>
         /// <param name="loginParametersDto">includes card number and pin</param>
-        /// <returns>
-        /// <para>NotFound if the card was not found</para>
-        /// <para>Unauthorized if the pin was incorrect</para>
-        /// <para>Ok(cardDto) if all ok</para>
-        /// </returns>
+        /// <returns>cardDto</returns>
+        /// <response code="404">NotFound if the card was not found</response>
+        /// <response code="401">Unauthorized if the pin was incorrect</response>
+        /// <response code="200">if all ok</response>
         [AllowAnonymous]
         [HttpPost("login")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Produces("application/json")]
         public async Task<IActionResult> Login([FromBody] LoginParametersDto loginParametersDto )
         {
             IdentityCard card = await _cardManager.FindByIdAsync(loginParametersDto.CardNumber);
@@ -103,13 +109,15 @@ namespace FirstCateringAuthenticationApi.Controllers
         /// The end point for getting a new jwt using the refresh token
         /// </summary>
         /// <param name="dto">includes the refresh token</param>
-        /// <returns>
-        ///<para>unauthorised if the token is null, revoked or expired</para>
-        ///<para>Ok(cardDto) if all ok</para>
-        /// </returns>
+        /// <returns>cardDto</returns>
+        ///<response code="401">unauthorised if the token is null, revoked or expired</response>
+        ///<response code="200">Ok(cardDto) if all ok</response>
         
         [HttpPost("refresh")]
         [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Produces("application/json")]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto dto)
         {
             RefreshToken refreshToken = await _refreshTokenRepository.Get(dto.Token);
@@ -132,15 +140,17 @@ namespace FirstCateringAuthenticationApi.Controllers
         /// The end point for registering new cards 
         /// </summary>
         /// <param name="dto">includes all the card and card holders details needed to register</param>
-        /// <returns>
-        /// <para>Bad request with Validation errors if the dto is invalid</para>
-        /// <para>BadRequest if the card is already registered</para>
-        /// <para>Ok("Registered successfully") if all ok</para>
-        /// <para>BadRequest with identity errors if something still went wrong in registering</para>
-        /// </returns>
+        /// <returns>"Registered successfully"</returns>
+        /// <response code="400">Bad request with Validation errors if the dto is invalid</response>
+        /// <response code="400">BadRequest if the card is already registered</response>
+        /// <response code="200">Ok("Registered successfully") if all ok</response>
+        /// <response code="400">BadRequest with identity errors if something still went wrong in registering</response>
 
         [AllowAnonymous]
         [HttpPost("register")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Produces("application/json")]
         public async Task<IActionResult> RegisterAsync([FromBody] CardRegistrationDto dto)
         {
             // check if card is already registered
