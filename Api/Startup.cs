@@ -67,7 +67,7 @@ namespace FirstCateringAuthenticationApi
                 {
                     x.RequireHttpsMetadata = true;
                     x.SaveToken = true;
-                    x.IncludeErrorDetails = true;
+                    x.IncludeErrorDetails = false;
                     x.TokenValidationParameters = new TokenValidationParameters()
                     {
                         ValidateIssuer = false,
