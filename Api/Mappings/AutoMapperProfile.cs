@@ -4,8 +4,14 @@ using FirstCateringAuthenticationApi.DataTransferObjects;
 
 namespace FirstCateringAuthenticationApi.Mappings
 {
+    /// <summary>
+    /// The main mapping profile
+    /// </summary>
     public class AutoMapperProfile: Profile
     {
+        /// <summary>
+        /// Constructor containing the mappings
+        /// </summary>
         public AutoMapperProfile()
         {
             CreateMap<CardRegistrationDto, IdentityCard>()

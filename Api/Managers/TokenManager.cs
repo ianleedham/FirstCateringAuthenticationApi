@@ -11,17 +11,30 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace FirstCateringAuthenticationApi.Managers
 {
+    /// <summary>
+    /// For managing json web and refresh tokens
+    /// </summary>
     public class TokenManager : ITokenManager
     {
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly IConfiguration _configuration;
 
+        /// <summary>
+        /// The constructor with injected dependancies
+        /// </summary>
+        /// <param name="refreshTokenRepository"></param>
+        /// <param name="configuration"></param>
         public TokenManager(IRefreshTokenRepository refreshTokenRepository, IConfiguration configuration)
         {
             _refreshTokenRepository = refreshTokenRepository;
             _configuration = configuration;
         }
         
+        /// <summary>
+        /// To save a given refresh token using the token repository
+        /// </summary>
+        /// <param name="refreshToken"></param>
+        /// <returns>Task/bool</returns>
         public async Task<bool> SaveRefreshToken(RefreshToken refreshToken)
         {
             await _refreshTokenRepository.Create(refreshToken);
@@ -29,6 +42,11 @@ namespace FirstCateringAuthenticationApi.Managers
             return result > 0;
         }
 
+        /// <summary>
+        /// To create a new jwt
+        /// </summary>
+        /// <param name="cardNumber"></param>
+        /// <returns>string of the jwt</returns>
         public string CreateJwt(string cardNumber)
         {
             var tokenHandeler = new JwtSecurityTokenHandler { TokenLifetimeInMinutes = 2 };
@@ -50,6 +68,11 @@ namespace FirstCateringAuthenticationApi.Managers
             return tokenHandeler.WriteToken(token);
         }
 
+        /// <summary>
+        /// To create a refresh token for a card 
+        /// </summary>
+        /// <param name="cardNumber"></param>
+        /// <returns>The RefreshToken object</returns>
         public RefreshToken CreateRefreshToken(string cardNumber)
         {
             var refreshToken = new RefreshToken()
@@ -62,6 +85,11 @@ namespace FirstCateringAuthenticationApi.Managers
             return refreshToken;
         }
 
+        /// <summary>
+        /// To invalidate a refresh token
+        /// </summary>
+        /// <param name="cardNumber"></param>
+        /// <returns>Task</returns>
         public async Task InvalidateRefreshToken(string cardNumber)
         {
             RefreshToken token = await _refreshTokenRepository.GetByCardnumber(cardNumber);
@@ -73,6 +101,11 @@ namespace FirstCateringAuthenticationApi.Managers
             }
         }
 
+        /// <summary>
+        /// To reset a refresh tokens expiry date/time
+        /// </summary>
+        /// <param name="refreshToken"></param>
+        /// <returns>Task which returns the RefreshToken object</returns>
         public async Task<RefreshToken> ResetRefreshToken(RefreshToken refreshToken)
         {
             RefreshToken token = await _refreshTokenRepository.Get(refreshToken.Token);

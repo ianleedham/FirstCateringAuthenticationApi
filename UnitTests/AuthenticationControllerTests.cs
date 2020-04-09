@@ -80,7 +80,6 @@ namespace UnitTests
             // Arrange
             var subject = GetSubject();
             var cardNumber = "cutbgln213454hbv";
-            var pin = "1234";
             _mockCardManager.Setup(x => x.FindByIdAsync(cardNumber)).ReturnsAsync((IdentityCard) null);
             var loginParameters = new LoginParametersDto();
             

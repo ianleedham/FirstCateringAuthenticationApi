@@ -18,12 +18,12 @@ namespace DAL.Repositories
             _context = context;
         }
 
-        public async Task<RefreshToken> Get(string tokenString)
+        public async Task<RefreshToken?> Get(string tokenString)
         {
             return await _context.RefreshTokens.FindAsync(tokenString);
         }
         
-        public Task<RefreshToken> GetByCardnumber(string cardNumber)
+        public Task<RefreshToken?> GetByCardnumber(string cardNumber)
         {
             return _context.RefreshTokens.Where(x => x.Revoked == false &&
                                                      x.CardNumber == cardNumber && x.Expires > DateTime.Now)

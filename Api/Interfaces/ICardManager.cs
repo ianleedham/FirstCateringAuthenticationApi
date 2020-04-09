@@ -6,12 +6,32 @@ using DAL.Models;
 
 namespace FirstCateringAuthenticationApi.Interfaces
 {
+    /// <summary>
+    /// The card manager for creating find and checking cards
+    /// </summary>
     public interface ICardManager
     {
-        Task<IdentityResult> CreateAsync(IdentityCard card, string password);
+        /// <summary>
+        /// For creating cards with a pin
+        /// </summary>
+        /// <param name="card"></param>
+        /// <param name="pin"></param>
+        /// <returns></returns>
+        Task<IdentityResult> CreateAsync(IdentityCard card, string pin);
 
-        Task<IdentityCard> FindByIdAsync(string userId);
+        /// <summary>
+        /// For finding a card by its card number
+        /// </summary>
+        /// <param name="cardNumber"></param>
+        /// <returns>The identity card async</returns>
+        Task<IdentityCard> FindByIdAsync(string cardNumber);
 
-        Task<bool> CheckPasswordAsync(IdentityCard user, string password);
+        /// <summary>
+        /// For checking if a given pin is correct for a given card
+        /// </summary>
+        /// <param name="card"></param>
+        /// <param name="pin"></param>
+        /// <returns>bool async</returns>
+        Task<bool> CheckPasswordAsync(IdentityCard card, string pin);
     }
 }
